@@ -1,0 +1,189 @@
+#########1. memcpy函数的用法#########
+
+错误使用报错信息--
+queue.c:88:29: error: 'memcpy' call operates on objects of type 'const char' while the size is based on a different type 'const char *' [-Werror,-Wsizeof-pointer-memaccess]
+    memcpy(value, s, sizeof(s));
+                  ~         ^
+queue.c:88:29: note: did you mean to provide an explicit length?
+
+
+#########2. memcpy如何避免内存泄漏#########
+
+
+#########3. 如何看内存泄漏信息#########
+===============================报错1==================================
+==19670==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x0001068003b8 at pc 0x0001025191ec bp 0x00016dcb7170 sp 0x00016dcb6928
+READ of size 1024 at 0x0001068003b8 thread T0
+    #0 0x1025191e8 in __asan_memcpy+0x1a4 (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3d1e8)
+    #1 0x102153e80 in queue_remove_head queue.c:167
+    #2 0x10214cd48 in do_remove_head qtest.c:276
+    #3 0x102151340 in interpret_cmda console.c:205
+    #4 0x102150fcc in interpret_cmd console.c:227
+    #5 0x102151d98 in cmd_select console.c:541
+    #6 0x102152f04 in run_console console.c:611
+    #7 0x10214dc1c in main qtest.c:526
+    #8 0x18d4c4f30 in start+0x0 (libdyld.dylib:arm64e+0x16f30)
+
+0x0001068003b8 is located 0 bytes to the right of 8-byte region [0x0001068003b0,0x0001068003b8)
+allocated by thread T0 here:
+    #0 0x10251b1c8 in wrap_malloc+0x94 (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3f1c8)
+    #1 0x102152fc4 in test_malloc harness.c:56
+    #2 0x1021535ac in queue_insert_head queue.c:83
+    #3 0x10214bee4 in do_insert_head qtest.c:161
+    #4 0x102151340 in interpret_cmda console.c:205
+    #5 0x102150fcc in interpret_cmd console.c:227
+    #6 0x102151d98 in cmd_select console.c:541
+    #7 0x102152f04 in run_console console.c:611
+    #8 0x10214dc1c in main qtest.c:526
+    #9 0x18d4c4f30 in start+0x0 (libdyld.dylib:arm64e+0x16f30)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3d1e8) in __asan_memcpy+0x1a4
+Shadow bytes around the buggy address:
+  0x007020d20020: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x007020d20030: fa fa fa fa fa fa fa fa fa fa fa fa fa fa 03 fa
+  0x007020d20040: fa fa 00 00 fa fa 00 fa fa fa 00 00 fa fa 00 fa
+  0x007020d20050: fa fa 00 00 fa fa 00 fa fa fa 00 00 fa fa 00 fa
+  0x007020d20060: fa fa 00 00 fa fa 00 fa fa fa 00 00 fa fa fd fa
+=>0x007020d20070: fa fa fd fa fa fa 00[fa]fa fa 00 00 fa fa 00 fa
+  0x007020d20080: fa fa 00 00 fa fa 00 fa fa fa 00 00 fa fa 00 fa
+  0x007020d20090: fa fa 00 00 fa fa 00 fa fa fa 00 00 fa fa fd fa
+  0x007020d200a0: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x007020d200b0: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x007020d200c0: fa fa fd fa fa fa fd fa fa fa fd fd fa fa fd fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==19670==ABORTING
+
+===============================报错2==================================
+==19682==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x000104a00497 at pc 0x00010053b8e0 bp 0x00016f8cf0d0 sp 0x00016f8cf0c8
+READ of size 8 at 0x000104a00497 thread T0
+    #0 0x10053b8dc in queue_insert_head queue.c:88
+    #1 0x100533ee4 in do_insert_head qtest.c:161
+    #2 0x100539340 in interpret_cmda console.c:205
+    #3 0x100538fcc in interpret_cmd console.c:227
+    #4 0x100539d98 in cmd_select console.c:541
+    #5 0x10053af04 in run_console console.c:611
+    #6 0x100535c1c in main qtest.c:526
+    #7 0x18d4c4f30 in start+0x0 (libdyld.dylib:arm64e+0x16f30)
+
+0x000104a00497 is located 0 bytes to the right of 7-byte region [0x000104a00490,0x000104a00497)
+allocated by thread T0 here:
+    #0 0x1007a31c8 in wrap_malloc+0x94 (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3f1c8)
+    #1 0x100536a94 in strsave_or_fail report.c:182
+    #2 0x100538c80 in parse_args console.c:177
+    #3 0x100538fa4 in interpret_cmd console.c:226
+    #4 0x100539d98 in cmd_select console.c:541
+    #5 0x10053af04 in run_console console.c:611
+    #6 0x100535c1c in main qtest.c:526
+    #7 0x18d4c4f30 in start+0x0 (libdyld.dylib:arm64e+0x16f30)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow queue.c:88 in queue_insert_head
+Shadow bytes around the buggy address:
+  0x007020960040: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x007020960050: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x007020960060: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x007020960070: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x007020960080: fa fa fa fa fa fa 00 fa fa fa 00 00 fa fa 03 fa
+=>0x007020960090: fa fa[07]fa fa fa 03 fa fa fa fd fd fa fa fd fa
+  0x0070209600a0: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x0070209600b0: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x0070209600c0: fa fa fd fd fa fa fd fd fa fa fd fa fa fa fd fa
+  0x0070209600d0: fa fa fd fa fa fa fd fa fa fa fd fa fa fa fd fa
+  0x0070209600e0: fa fa 00 06 fa fa 00 00 fa fa 00 00 fa fa 00 06
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==19682==ABORTING
+
+===============================报错3==================================
+==19689==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x00010ad5e997 at pc 0x000100797ccc bp 0x00016f6730e0 sp 0x00016f6730d8
+READ of size 8 at 0x00010ad5e997 thread T0
+    #0 0x100797cc8 in queue_insert_tail queue.c:126
+    #1 0x10079079c in do_insert_tail qtest.c:217
+    #2 0x100795340 in interpret_cmda console.c:205
+    #3 0x100794fcc in interpret_cmd console.c:227
+    #4 0x100795d98 in cmd_select console.c:541
+    #5 0x100796f04 in run_console console.c:611
+    #6 0x100791c1c in main qtest.c:526
+    #7 0x18d4c4f30 in start+0x0 (libdyld.dylib:arm64e+0x16f30)
+
+0x00010ad5e997 is located 0 bytes to the right of 7-byte region [0x00010ad5e990,0x00010ad5e997)
+allocated by thread T0 here:
+    #0 0x100ccb1c8 in wrap_malloc+0x94 (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3f1c8)
+    #1 0x100792a94 in strsave_or_fail report.c:182
+    #2 0x100794c80 in parse_args console.c:177
+    #3 0x100794fa4 in interpret_cmd console.c:226
+    #4 0x100795d98 in cmd_select console.c:541
+    #5 0x100796f04 in run_console console.c:611
+    #6 0x100791c1c in main qtest.c:526
+    #7 0x18d4c4f30 in start+0x0 (libdyld.dylib:arm64e+0x16f30)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow queue.c:126 in queue_insert_tail
+Shadow bytes around the buggy address:
+  0x0070215cbce0: fa fa 00 fa fa fa 00 00 fa fa fa fa fa fa fa fa
+  0x0070215cbcf0: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0070215cbd00: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0070215cbd10: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x0070215cbd20: fa fa fa fa fa fa 00 fa fa fa 00 00 fa fa 00 fa
+=>0x0070215cbd30: fa fa[07]fa fa fa 03 fa fa fa 00 fa fa fa 00 00
+  0x0070215cbd40: fa fa 00 fa fa fa 00 00 fa fa 00 fa fa fa 00 00
+  0x0070215cbd50: fa fa 00 fa fa fa 00 00 fa fa 00 fa fa fa 00 00
+  0x0070215cbd60: fa fa 00 fa fa fa 00 00 fa fa 00 fa fa fa 00 00
+  0x0070215cbd70: fa fa 00 fa fa fa 00 00 fa fa 00 fa fa fa 00 00
+  0x0070215cbd80: fa fa 00 fa fa fa 00 00 fa fa 00 fa fa fa 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+  Shadow gap:              cc
+==19689==ABORTING

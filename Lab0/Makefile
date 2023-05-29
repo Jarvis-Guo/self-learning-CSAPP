@@ -70,7 +70,7 @@ clean:
 # Include rules for submit, format, etc
 FORMAT_FILES = queue.c queue.h
 HANDIN_FILES = queue.c queue.h .clang-format
-include helper.mk
+#include helper.mk
 
 # Add check-format dependencies
 submit: | check-format

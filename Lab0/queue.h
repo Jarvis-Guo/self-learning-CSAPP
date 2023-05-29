@@ -48,6 +48,16 @@ typedef struct {
      * TODO: You will need to add more fields to this structure
      *       to efficiently implement q_size and q_insert_tail
      */
+    /**
+     * @brief Pointer to the last element in the queue, or NULL if the
+     *        queue is empty.
+     */
+    list_ele_t *tail;
+
+    /**
+     * @brief Number of elements in the queue.
+     */
+    size_t size;
 } queue_t;
 
 /************** Operations on queue ************************/
@@ -65,7 +75,7 @@ bool queue_insert_head(queue_t *q, const char *s);
 bool queue_insert_tail(queue_t *q, const char *s);
 
 /* Attempt to remove element from head of queue. */
-bool queue_remove_head(queue_t *q, char *sp, size_t bufsize);
+bool queue_remove_head(queue_t *q, char *buf, size_t bufsize);
 
 /* Return number of elements in queue. */
 size_t queue_size(queue_t *q);
