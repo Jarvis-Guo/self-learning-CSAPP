@@ -85,8 +85,8 @@ bool queue_insert_head(queue_t *q, const char *s) {
         free(newh);
         return false;
     }
-    // memcpy(value, s, strlen(s) + 1);
-    strcpy(value, s);
+    memcpy(value, s, strlen(s) + 1);
+    //strcpy(value, s);
     newh->value = value;
     newh->next = q->head;
     if (newh->next == NULL) {
@@ -124,9 +124,9 @@ bool queue_insert_tail(queue_t *q, const char *s) {
         free(newElement);
         return false;
     }
-    // TODO: 搞清楚为什么memcpy会有内存泄漏
-    // memcpy(value, s, strlen(s) + 1);
-    strcpy(value, s);
+    // 以下两种方式都是可行的
+    memcpy(value, s, strlen(s) + 1);
+    //strcpy(value, s);
     newElement->value = value;
     newElement->next = NULL;
     if (q->head == NULL) {
